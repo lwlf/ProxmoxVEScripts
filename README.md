@@ -3,7 +3,8 @@
 
 # 使用说明
 
+> 使用具有管理员权限的用户运行该命令
+
 ```shell
-# 使用具有管理员权限的用户运行该命令
 curl -OL https://github.com/lwlf/RemovePVESubscriptionTip/raw/main/removepvetip && mv removepvetip /usr/local/bin/removepvetip && chmod +x /usr/local/bin/removepvetip
 ```
