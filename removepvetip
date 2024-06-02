@@ -70,6 +70,6 @@ case "$1" in
     echo "--force-disable 强制关闭（还原）屏蔽订阅提示，需要联网"
     echo "--hook          开启 hook，每次更新 proxmox-widget-toolkit 开启屏蔽订阅提示"
     echo "--unhook        关闭 hook，每次更新 proxmox-widget-toolkit 不开启屏蔽订阅提示"
-    echo "--hook-remove    更新 proxmox-widget-toolkit 调用 hook 参数"
+    echo "--hook-remove   更新 proxmox-widget-toolkit 调用 hook 参数"
     ;;
 esac
