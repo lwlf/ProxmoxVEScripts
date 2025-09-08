@@ -1,17 +1,32 @@
-#!/bin/sh
+#!/bin/bash
+
+proxmoxlib_file_backup="/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak"
+proxmoxlib_file="/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js"
 
 enable(){
-    sed -i.bak -z "s#res === null || res === undefined || \!res || res\n\t\t\t.data.status.toLowerCase() \!== 'active'#false#g" /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js && systemctl restart pveproxy.service && {
-    echo "已屏蔽订阅提示，请在浏览器中按 Ctrl+F5 刷新缓存\n若想还原订阅提示，请执行命令：\nremovepvetip --disable"
-    }
+    source /etc/os-release
+    case "$VERSION_ID" in
+        "13")
+            # Proxmox VE 9.0+
+            sed -i.bak -z "s#res.data.status.toLowerCase() \!== 'active'#false#g" $proxmoxlib_file && systemctl restart pveproxy.service && {
+                echo -e "已屏蔽订阅提示，请在浏览器中按 Ctrl+F5 刷新缓存\n若想还原订阅提示，请执行命令：\nremovepvetip --disable"
+            }
+        ;;
+        *)
+            # Proxmox VE 8.4-
+            sed -i.bak -z "s#res === null || res === undefined || \!res || res\n\t\t\t.data.status.toLowerCase() \!== 'active'#false#g" $proxmoxlib_file && systemctl restart pveproxy.service && {
+                echo -e "已屏蔽订阅提示，请在浏览器中按 Ctrl+F5 刷新缓存\n若想还原订阅提示，请执行命令：\nremovepvetip --disable"
+            }
+        ;;
+    esac
 }
 
 disable(){
-    if [ -f "/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak" ];
+    if [ -f "$proxmoxlib_file_backup" ];
     then
-        mv -f "/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak" "/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js" && echo "已关闭屏蔽订阅提示"
+        mv -f "$proxmoxlib_file_backup" "$proxmoxlib_file" && echo "已关闭屏蔽订阅提示"
     else
-        echo "/usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak 不存在，请尝试强制还原\nremovepvetip --force-disable"
+        echo -e "$proxmoxlib_file_backup 不存在，请尝试强制还原\nremovepvetip --force-disable"
     fi
 }
 
@@ -31,14 +46,14 @@ hookRemove(){
     then
         # 上次已更新 proxmox-widget-toolkit，制作屏蔽订阅操作
         nowDate=`date +"%Y-%m-%d %H:%M:%S" | awk -F'[-: ]'  '{printf "%d年%d月%d日 %d时%d分%d秒\n", $1, $2, $3, $4, $5, $6}'`
-        echo "$nowDate ：已更新 proxmox-widget-toolkit，执行屏蔽订阅提示操作"
+        echo -e "$nowDate ：已更新 proxmox-widget-toolkit，执行屏蔽订阅提示操作"
         enable
-        echo "若不想每次更新 proxmox-widget-toolkit 后执行屏蔽订阅提示操作，请执行以下命令：\nremovepvetip --unhook"
+        echo -e "若不想每次更新 proxmox-widget-toolkit 后执行屏蔽订阅提示操作，请执行以下命令：\nremovepvetip --unhook"
     fi
 }
 
 hook(){
-    echo 'DPkg::Post-Invoke {"sh /usr/local/bin/removepvetip --hook-remove"; };' > /etc/apt/apt.conf.d/90removepvetip && echo "已开启 hook，每次更新 proxmox-widget-toolkit 开启屏蔽订阅提示，如需关闭 hook，请执行以下命令：\nremovepvetip --unhook"
+    echo 'DPkg::Post-Invoke {"sh /usr/local/bin/removepvetip --hook-remove"; };' > /etc/apt/apt.conf.d/90removepvetip && echo -e "已开启 hook，每次更新 proxmox-widget-toolkit 开启屏蔽订阅提示，如需关闭 hook，请执行以下命令：\nremovepvetip --unhook"
 }
 
 unhook(){
